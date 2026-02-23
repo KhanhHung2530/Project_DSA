@@ -3,15 +3,8 @@
 #include <algorithm>
 #include <string>
 #include "Course.h"
+#include "DataLoader.h"
 using namespace std;
-
-// Converts a time string HH:MM into total minutes since the start of the day.
-int TimeToMinutes(string Time)
-{
-    int hours = stoi(Time.substr(0, 2));
-    int minutes = stoi(Time.substr(3, 2));
-    return hours * 60 + minutes;
-}
 
 // Find the latest course that does not overlap with the current one
 // Uses Binary Search for O(log n) performance
@@ -47,10 +40,7 @@ int findPreviourNonConflict(const vector<Course> &courses, int index)
 
 int main()
 {
-    vector<Course> courses;
-    cout << "Smart Course Scheduler Started!" << endl;
-    // TODO: Load data from CSV
-    // TODO: Sort courses by end_min
-    // TODO: Run Dynamic Programming algorithm
+    vector<Course> courses = loadCoursesFromCSV("data.csv");
+    sort(courses.begin(), courses.end());
     return 0;
 }
