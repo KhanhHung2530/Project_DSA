@@ -1,4 +1,0 @@
-3
-INT1001 Nhap_Mon_Lap_Trinh 2 07:30 11:30 C301 Nguyen_Van_Cu
-INT1002 Dai_So_Tuyen_Tinh 3 13:00 16:30 E202 Linh_Trung
-INT1003 Vat_Ly_Dai_Cuong 5 07:30 10:30 F102 Linh_Trung
