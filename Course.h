@@ -21,6 +21,8 @@ struct Course
     // This is a prerequisite for both Greedy and DP algorithms
     bool operator<(const Course &other) const
     {
+        if (day != other.day)
+            return day < other.day;
         return end_min < other.end_min;
     }
 };
