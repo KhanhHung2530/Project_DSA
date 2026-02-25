@@ -4,43 +4,93 @@
 #include <string>
 #include "Course.h"
 #include "DataLoader.h"
+#include "CalendarExport.h"
 using namespace std;
 
-// Find the latest course that does not overlap with the current one
-// Uses Binary Search for O(log n) performance
-int findPreviourNonConflict(const vector<Course> &courses, int index)
-{
+bool isCompatible(const Course &prev, const Course &curr){
+    if (prev.day < curr.day) return true;
+    if (prev.day > curr.day) return false;
+    return prev.end_min <= curr.start_min;
+}
+
+int findPreviousNonConflict(const vector<Course> &courses, int index){
     int low = 0, high = index - 1;
-    while (low <= high)
-    {
+    while (low <= high){
         int mid = (low + high) / 2;
-        // Check if the middle course finishes before the current course starts
-        if (courses[mid].end_min <= courses[index].start_min)
-        {
-            // If the next course also fits, look further to the right
-            if (courses[mid + 1].end_min <= courses[index].start_min)
-            {
+        if (isCompatible(courses[mid], courses[index])){
+            if (mid + 1 < index && isCompatible(courses[mid + 1], courses[index])){
                 low = mid + 1;
             }
-            else
-            {
-                // This is the closest compatible course
+            else{
                 return mid;
             }
         }
-        else
-        {
-            // Conflict found, look to the left
+        else{
             high = mid - 1;
         }
     }
-    // No compatible course found
     return -1;
 }
 
-int main()
-{
-    vector<Course> courses = loadCoursesFromCSV("data.csv");
+int main(){
+    vector<Course> allCourses = loadCoursesFromCSV("data.csv");
+    if (allCourses.empty()){
+        cout << "Error: Cannot read data from data.csv!" << endl;
+        return 0;
+    }
+    int userSemester;
+    cout << "Enter semester: ";
+    cin >> userSemester;
+    vector<Course> courses;
+    for (const Course &c : allCourses){
+        if (c.semester == userSemester)
+        {
+            courses.push_back(c);
+        }
+    }
+
+    if (courses.empty()){
+        cout << "No courses found for semester " << userSemester << endl;
+        return 0;
+    }
+
     sort(courses.begin(), courses.end());
+
+    int n = courses.size();
+
+    vector<int> dp(n);
+    dp[0] = courses[0].weight;
+    for (int i = 1; i < n; i++){
+        int weight_i = courses[i].weight;
+        int p = findPreviousNonConflict(courses, i);
+        if (p != -1)
+            weight_i += dp[p];
+        dp[i] = max(dp[i - 1], weight_i);
+    }
+
+    vector<Course> selectedCourses;
+    int i = n - 1;
+    while (i >= 0){
+        if (i == 0){
+            selectedCourses.push_back(courses[0]);
+            break;
+        }
+        int p = findPreviousNonConflict(courses, i);
+        int val_p = 0;
+        if (p != -1){
+            val_p = dp[p];
+        }
+        if (courses[i].weight + val_p >= dp[i - 1]){
+            selectedCourses.push_back(courses[i]);
+            i = p;
+        }
+        else{
+            i--;
+        }
+    }
+
+    exportToICS(selectedCourses, "Schedule.ics");
+    cout << "------------------------------------------" << endl;
+    cout << "SUCCESS! Schedule exported to Schedule.ics" << endl;
     return 0;
 }

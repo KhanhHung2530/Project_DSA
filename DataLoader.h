@@ -29,18 +29,20 @@ vector<Course> loadCoursesFromCSV(string filename)
     string header;
     getline(infile, header);
     Course c;
-    string dayStr, weightStr;
+    string dayStr, weightStr, semStr;
     while (getline(infile, c.course_id, ','))
     {
         getline(infile, dayStr, ',');
         getline(infile, c.start_time, ',');
         getline(infile, c.end_time, ',');
         getline(infile, c.room, ',');
-        getline(infile, weightStr);
+        getline(infile, weightStr, ',');
+        getline(infile, semStr);
         c.day = stoi(dayStr);
         c.start_min = TimeToMinutes(c.start_time);
         c.end_min = TimeToMinutes(c.end_time);
         c.weight = stoi(weightStr);
+        c.semester = stoi(semStr);
         courses.push_back(c);
     }
     infile.close();

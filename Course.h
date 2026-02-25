@@ -16,6 +16,7 @@ struct Course
     int start_min; // Start time converted to minutes
     int end_min;   // End time converted to minutes
     int weight;    // Priority weight for DP
+    int semester;
 
     // Overload the less-than operator to sort courses by their end time
     // This is a prerequisite for both Greedy and DP algorithms
