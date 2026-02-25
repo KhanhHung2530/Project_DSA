@@ -89,6 +89,8 @@ int main(){
         }
     }
 
+    reverse(selectedCourses.begin(), selectedCourses.end());
+
     exportToICS(selectedCourses, "Schedule.ics");
     cout << "------------------------------------------" << endl;
     cout << "SUCCESS! Schedule exported to Schedule.ics" << endl;
