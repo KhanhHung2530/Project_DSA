@@ -38,6 +38,9 @@ vector<Course> loadCoursesFromCSV(string filename)
         getline(infile, c.room, ',');
         getline(infile, weightStr, ',');
         getline(infile, semStr);
+        if (!semStr.empty() && semStr.back() == '\r') {
+            semStr.pop_back();
+        }
         c.day = stoi(dayStr);
         c.start_min = TimeToMinutes(c.start_time);
         c.end_min = TimeToMinutes(c.end_time);
