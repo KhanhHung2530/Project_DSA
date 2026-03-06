@@ -28,10 +28,10 @@ vector<Course> loadCoursesFromCSV(const string &filename)
     }
     string header;
     getline(infile, header);
+    Course c;
     string dayStr, weightStr, semStr;
     while (getline(infile, c.course_id, ','))
     {
-        Course c;
         getline(infile, dayStr, ',');
         getline(infile, c.start_time, ',');
         getline(infile, c.end_time, ',');
