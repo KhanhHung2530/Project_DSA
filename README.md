@@ -37,7 +37,7 @@ This project demonstrates a deep understanding of DSA concepts, combining them t
 
 ### The Core Engine: Dynamic Programming (O(n log n))
 The backbone of the scheduler is a 1D Dynamic Programming approach. 
-* Courses are first sorted by their `end_time` (O(n log n)).
+* Courses are grouped by day, and within each day, they are sorted by end_time to ensure the correctness of the Binary Search and DP state transitions.
 * A state array `dp[i]` stores the maximum possible weight achievable using a subset of the first $i$ courses.
 * **Binary Search:** To find the previous compatible course without overlapping, we implemented a custom `findPreviousNonConflict` function using Binary Search, optimizing the state transition from $O(n)$ to $O(\log n)$.
 
