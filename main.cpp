@@ -11,28 +11,23 @@ using namespace std;
 int globalMinBreak = 0;
 
 bool isCompatible(const Course &prev, const Course &curr){
-    if (prev.day < curr.day) return true;
-    if (prev.day > curr.day) return false;
     return prev.end_min + globalMinBreak <= curr.start_min;
 }
 
 int findPreviousNonConflict(const vector<Course> &courses, int index){
     int low = 0, high = index - 1;
+    int best=-1;
     while (low <= high){
         int mid = (low + high) / 2;
         if (isCompatible(courses[mid], courses[index])){
-            if (mid + 1 < index && isCompatible(courses[mid + 1], courses[index])){
-                low = mid + 1;
-            }
-            else{
-                return mid;
-            }
+            best=mid;
+            low=mid+1;
         }
         else{
             high = mid - 1;
         }
     }
-    return -1;
+    return best;
 }
 
 int main(){
@@ -75,7 +70,7 @@ int main(){
     vector<int> bannedDays;
     for (int i = 0; i < numNoStudyDays; i++){
         int d;
-        cout << "Enter banned day (0=Mon ... 6=Sun): ";
+        cout << "Enter banned day (2=Mon ... 8=Sun): ";
         cin >> d;
         bannedDays.push_back(d);
     }
@@ -87,7 +82,7 @@ int main(){
     vector<int> preferredDays;
     for (int i = 0; i < numPreferredDays; i++){
         int d;
-        cout << "Enter preferred day (0=Mon ... 8=Sun): ";
+        cout << "Enter preferred day (2=Mon ... 8=Sun): ";
         cin >> d;
         preferredDays.push_back(d);
     }
@@ -205,45 +200,53 @@ int main(){
         return 0;
     }
 
-
-    sort(courses.begin(), courses.end());
-
-    int n = courses.size();
-
-    vector<int> dp(n);
-    dp[0] = courses[0].weight;
-    for (int i = 1; i < n; i++){
-        int weight_i = courses[i].weight;
-        int p = findPreviousNonConflict(courses, i);
-        if (p != -1)
-            weight_i += dp[p];
-        dp[i] = max(dp[i - 1], weight_i);
+// THE CORE ENGINE: DYNAMIC PROGRAMMING (PER DAY)
+    map<int, vector<Course>> coursesByDay;
+    for (const Course &c : courses) {
+        coursesByDay[c.day].push_back(c);
     }
 
-    vector<Course> selectedCourses;
-    int i = n - 1;
-    while (i >= 0){
-        if (i == 0){
-            selectedCourses.push_back(courses[0]);
-            break;
+    vector<Course> finalSelectedCourses;
+    for (auto &pair : coursesByDay) {
+        vector<Course> &dayCourses = pair.second;
+        
+        sort(dayCourses.begin(), dayCourses.end());
+
+        int n = dayCourses.size();
+        vector<int> dp(n);
+        dp[0] = dayCourses[0].weight;
+
+        for (int i = 1; i < n; i++){
+            int weight_i = dayCourses[i].weight;
+            int p = findPreviousNonConflict(dayCourses, i);
+            if (p != -1)
+                weight_i += dp[p];
+            dp[i] = max(dp[i - 1], weight_i);
         }
-        int p = findPreviousNonConflict(courses, i);
-        int val_p = 0;
-        if (p != -1){
-            val_p = dp[p];
+
+        vector<Course> daySelected;
+        int i = n - 1;
+        while (i >= 0){
+            if (i == 0){
+                daySelected.push_back(dayCourses[0]);
+                break;
+            }
+            int p = findPreviousNonConflict(dayCourses, i);
+            int val_p = (p != -1) ? dp[p] : 0;
+            
+            if (dayCourses[i].weight + val_p >= dp[i - 1]){
+                daySelected.push_back(dayCourses[i]);
+                i = p;
+            }
+            else{
+                i--;
+            }
         }
-        if (courses[i].weight + val_p >= dp[i - 1]){
-            selectedCourses.push_back(courses[i]);
-            i = p;
-        }
-        else{
-            i--;
-        }
+
+        finalSelectedCourses.insert(finalSelectedCourses.end(), daySelected.begin(), daySelected.end());
     }
 
-    reverse(selectedCourses.begin(), selectedCourses.end());
-
-    exportToICS(selectedCourses, "Schedule.ics");
+    exportToICS(finalSelectedCourses, "Schedule.ics");
     cout << "------------------------------------------" << endl;
     cout << "SUCCESS! Schedule exported to Schedule.ics" << endl;
     return 0;
