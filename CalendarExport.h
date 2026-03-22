@@ -7,7 +7,7 @@
 #include <fstream>
 using namespace std;
 
-string getStartDate(int day)
+inline string getStartDate(int day)
 {
     int startDay = 12;
     int actualDay = startDay + (day - 2);    // Convert weekday to actual calendar date starting from Jan 12
@@ -17,14 +17,14 @@ string getStartDate(int day)
     return "202601" + dayStr;
 }
 
-string formatTime(const string &t)
+inline string formatTime(const string &t)
 {
     string hh = t.substr(0, 2);
     string mm = t.substr(3, 2);
     return hh + mm + "00";
 }
 
-void exportToICS(const vector<Course> &selectedCourses, const string &filename)
+inline void exportToICS(const vector<Course> &selectedCourses, const string &filename)
 {
     ofstream outfile(filename);
     if (!outfile)
