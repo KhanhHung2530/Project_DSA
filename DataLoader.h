@@ -9,14 +9,14 @@
 using namespace std;
 
 // Converts a time string HH:MM into total minutes since the start of the day.
-int TimeToMinutes(const string &Time)
+inline int TimeToMinutes(const string &Time)
 {
     int hours = stoi(Time.substr(0, 2));
     int minutes = stoi(Time.substr(3, 2));
     return hours * 60 + minutes;
 }
 
-vector<Course> loadCoursesFromCSV(const string &filename)
+inline vector<Course> loadCoursesFromCSV(const string &filename)
 {
     vector<Course> courses;
     ifstream infile(filename);
@@ -29,7 +29,7 @@ vector<Course> loadCoursesFromCSV(const string &filename)
     string header;
     getline(infile, header);
     Course c;
-    string dayStr, weightStr, semStr;
+    string dayStr, weightStr, semStr, typeStr;
     while (getline(infile, c.course_id, ','))
     {
         getline(infile, dayStr, ',');
@@ -37,9 +37,10 @@ vector<Course> loadCoursesFromCSV(const string &filename)
         getline(infile, c.end_time, ',');
         getline(infile, c.room, ',');
         getline(infile, weightStr, ',');
-        getline(infile, semStr);
-        if (!semStr.empty() && semStr.back() == '\r') {
-            semStr.pop_back();
+        getline(infile, semStr, ',');
+        getline(infile, typeStr);
+        if (!typeStr.empty() && typeStr.back() == '\r') {
+            typeStr.pop_back();
         }
         c.day = stoi(dayStr);
         c.start_min = TimeToMinutes(c.start_time);
