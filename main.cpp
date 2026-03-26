@@ -4,8 +4,11 @@
 #include <string>
 #include <set>
 #include <map>
+#include <limits>
 #include "Course.h"
+#include "Activity.h"
 #include "DataLoader.h"
+#include "SchedulePlanner.h"
 #include "CalendarExport.h"
 using namespace std;
 int globalMinBreak = 0;
@@ -30,6 +33,32 @@ int findPreviousNonConflict(const vector<Course> &courses, int index){
     return best;
 }
 
+string readLineInput(const string &prompt){
+    cout << prompt;
+    string value;
+    getline(cin >> ws, value);
+    return value;
+}
+
+int readPeriodChoice(){
+    int choice;
+    cout << "Preferred time period:\n";
+    cout << "0 - Anywhere in the day\n";
+    cout << "1 - Morning\n";
+    cout << "2 - Afternoon\n";
+    cout << "3 - Evening\n";
+    cout << "Your choice: ";
+    cin >> choice;
+    return choice;
+}
+
+string periodChoiceToString(int choice){
+    if (choice == 1) return "morning";
+    if (choice == 2) return "afternoon";
+    if (choice == 3) return "evening";
+    return "any";
+}
+
 int main(){
     vector<Course> allCourses = loadCoursesFromCSV("data.csv");
     if (allCourses.empty()){
@@ -48,8 +77,7 @@ int main(){
     }
 
     if (courses.empty()){
-        cout << "No courses found for semester " << userSemester << endl;
-        return 0;
+        cout << "No courses found for semester " << userSemester << ". You can still build a personal-life schedule.\n";
     }
     // USER MODE SELECTION
 
@@ -115,8 +143,7 @@ int main(){
         }
     }
     if (courses.empty()){
-        cout << "All courses removed by your filters!" << endl;
-        return 0;
+        cout << "All courses removed by your filters. Continuing with personal activities only.\n";
     }
     // ADVANCED MODE SETTINGS 
     cout << "\n===== ADVANCED MODES =====\n";
@@ -196,11 +223,10 @@ int main(){
     }
 
     if (courses.empty()){
-        cout << "No courses remain after advanced filters!" << endl;
-        return 0;
+        cout << "No courses remain after advanced filters. Continuing with personal activities only.\n";
     }
 
-// THE CORE ENGINE: DYNAMIC PROGRAMMING (PER DAY)
+// THE CORE ENGINE: DYNAMIC PROGRAMMING (PER DAY) 
     map<int, vector<Course>> coursesByDay;
     for (const Course &c : courses) {
         coursesByDay[c.day].push_back(c);
@@ -246,8 +272,76 @@ int main(){
         finalSelectedCourses.insert(finalSelectedCourses.end(), daySelected.begin(), daySelected.end());
     }
 
-    exportToICS(finalSelectedCourses, "Schedule.ics");
+    sort(finalSelectedCourses.begin(), finalSelectedCourses.end());
+
+    cout << "\n===== LIFE SCHEDULE SETTINGS =====\n";
+    string dailyStartTime;
+    string dailyEndTime;
+    cout << "Daily start time (HH:MM): ";
+    cin >> dailyStartTime;
+    cout << "Daily end time (HH:MM): ";
+    cin >> dailyEndTime;
+
+    int activeStartMin = TimeToMinutes(dailyStartTime);
+    int activeEndMin = TimeToMinutes(dailyEndTime);
+    while (activeEndMin <= activeStartMin){
+        cout << "End time must be later than start time. Please enter again.\n";
+        cout << "Daily start time (HH:MM): ";
+        cin >> dailyStartTime;
+        cout << "Daily end time (HH:MM): ";
+        cin >> dailyEndTime;
+        activeStartMin = TimeToMinutes(dailyStartTime);
+        activeEndMin = TimeToMinutes(dailyEndTime);
+    }
+
+    int numActivities;
+    cout << "\nHow many optional activities do you want to add? ";
+    cin >> numActivities;
+
+    vector<PersonalActivity> personalActivities;
+    for (int i = 0; i < numActivities; i++){
+        cout << "\n----- Activity " << i + 1 << " -----\n";
+        PersonalActivity activity;
+        activity.name = readLineInput("Activity name: ");
+        activity.category = readLineInput("Category (English/Gym/Reading/etc): ");
+        activity.location = readLineInput("Location or note: ");
+        cout << "Duration per day (minutes): ";
+        cin >> activity.duration_min;
+
+        int periodChoice = readPeriodChoice();
+        activity.preferred_period = periodChoiceToString(periodChoice);
+
+        int numDays;
+        cout << "How many days in the week for this activity? ";
+        cin >> numDays;
+        for (int j = 0; j < numDays; j++){
+            int d;
+            cout << "Enter day (2=Mon ... 8=Sun): ";
+            cin >> d;
+            activity.days.push_back(d);
+        }
+        personalActivities.push_back(activity);
+    }
+
+    vector<string> warnings;
+    vector<ScheduleBlock> finalSchedule = buildWeeklySchedule(
+        finalSelectedCourses,
+        personalActivities,
+        activeStartMin,
+        activeEndMin,
+        warnings
+    );
+
+    printWeeklySchedule(finalSchedule);
+    if (!warnings.empty()){
+        cout << "\n============= WARNINGS =============\n";
+        for (const string &warning : warnings){
+            cout << "- " << warning << '\n';
+        }
+    }
+
+    exportToICS(finalSchedule, "Schedule.ics");
     cout << "------------------------------------------" << endl;
-    cout << "SUCCESS! Schedule exported to Schedule.ics" << endl;
+    cout << "SUCCESS! Full life schedule exported to Schedule.ics" << endl;
     return 0;
 }
