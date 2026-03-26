@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Schedule Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <span class="hero-badge">Weekly Planner</span>
+        <h1>Build a study and life schedule in one clean view</h1>
+        <p>
+          Select your semester, tune study preferences, add personal activities,
+          then generate a colorful weekly schedule with free-time blocks included.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button id="loadSampleBtn" class="secondary-btn" type="button">Load data.csv</button>
+        <label class="upload-btn" for="csvFileInput">Upload CSV</label>
+        <input id="csvFileInput" type="file" accept=".csv">
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel control-panel">
+        <div class="section-head">
+          <h2>Planner Settings</h2>
+          <p>Everything here stays simple and editable.</p>
+        </div>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Semester</span>
+            <input id="semesterInput" type="number" min="1" value="2">
+          </label>
+
+          <label class="field">
+            <span>Time preference</span>
+            <select id="timeModeSelect">
+              <option value="0">No preference</option>
+              <option value="1">Prefer early classes</option>
+              <option value="2">Prefer late classes</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Daily start time</span>
+            <input id="activeStartInput" type="time" value="07:30">
+          </label>
+
+          <label class="field">
+            <span>Daily end time</span>
+            <input id="activeEndInput" type="time" value="22:00">
+          </label>
+
+          <label class="field">
+            <span>Max classes per day</span>
+            <input id="maxPerDayInput" type="number" min="0" value="0">
+          </label>
+
+          <label class="field">
+            <span>Minimum break (minutes)</span>
+            <input id="minBreakInput" type="number" min="0" value="0">
+          </label>
+
+          <label class="field">
+            <span>Max study days</span>
+            <input id="maxStudyDaysInput" type="number" min="0" value="0">
+          </label>
+
+          <label class="checkbox-field">
+            <input id="avoidLunchInput" type="checkbox">
+            <span>Avoid lunch time block (11:30 - 13:30)</span>
+          </label>
+        </div>
+
+        <div class="day-pickers">
+          <div class="picker-group">
+            <h3>Days to avoid</h3>
+            <div id="bannedDaysGroup" class="day-chip-group"></div>
+          </div>
+
+          <div class="picker-group">
+            <h3>Preferred study days</h3>
+            <div id="preferredDaysGroup" class="day-chip-group"></div>
+          </div>
+        </div>
+
+        <div class="section-head activities-head">
+          <div>
+            <h2>Personal Activities</h2>
+            <p>Add as many repeating activities as you want.</p>
+          </div>
+          <button id="addActivityBtn" class="primary-btn" type="button">Add Activity</button>
+        </div>
+
+        <div id="activitiesList" class="activities-list"></div>
+
+        <div class="action-row">
+          <button id="generateBtn" class="generate-btn" type="button">Generate Weekly Schedule</button>
+          <button id="exportBtn" class="secondary-btn" type="button" disabled>Export Schedule.ics</button>
+        </div>
+
+        <div id="messageBox" class="message-box info"></div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="section-head">
+          <h2>Weekly Overview</h2>
+          <p>Click any day to see the full timeline.</p>
+        </div>
+
+        <div id="summaryStats" class="summary-stats"></div>
+        <div id="weeklyOverview" class="weekly-overview"></div>
+
+        <div class="section-head detail-head">
+          <h2 id="detailTitle">Daily Details</h2>
+          <p id="detailSubtitle">Generate a schedule to see the detailed timeline.</p>
+        </div>
+
+        <div id="dayDetail" class="day-detail empty-state">
+          No schedule generated yet.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <template id="activityTemplate">
+    <article class="activity-card">
+      <div class="activity-top">
+        <h3>New Activity</h3>
+        <button class="remove-activity-btn" type="button">Remove</button>
+      </div>
+
+      <div class="activity-grid">
+        <label class="field">
+          <span>Activity name</span>
+          <input class="activity-name" type="text" placeholder="English Study">
+        </label>
+
+        <label class="field">
+          <span>Duration (minutes)</span>
+          <input class="activity-duration" type="number" min="15" step="15" value="60">
+        </label>
+
+        <label class="field">
+          <span>Category</span>
+          <select class="activity-category">
+            <option value="English">English</option>
+            <option value="Fitness">Fitness</option>
+            <option value="Sports">Sports</option>
+            <option value="Reading">Reading</option>
+            <option value="Relax">Relax</option>
+            <option value="Extracurricular">Extracurricular</option>
+            <option value="Personal">Personal</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Preferred time</span>
+          <select class="activity-period">
+            <option value="any">Anywhere in the day</option>
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+            <option value="evening">Evening</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Location / note</span>
+          <input class="activity-location" type="text" placeholder="Home or Gym">
+        </label>
+      </div>
+
+      <div class="picker-group">
+        <h4>Repeat on</h4>
+        <div class="activity-days day-chip-group"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
