@@ -41,7 +41,7 @@ Once the optimal course schedule is locked, the system switches to personal life
 
 * **Gap Detection:** The algorithm scans the intervals between classes and safely injects personal activities without causing overlaps.
 
-* **Free Time Generation:** Any remaining empty blocks in the active day (from activeStartMin to activeEndMin) are automatically labeled as "Free Time", giving users a complete 360-degree view of their day.
+* **Free Time Generation:** Any remaining empty blocks in the active day (from ```activeStartMin``` to ```activeEndMin```) are automatically labeled as "Free Time", giving users a complete 360-degree view of their day.
 
 ## 🧠 3. Algorithms & Data Structures
 This project demonstrates a deep understanding of DSA concepts, combining them to achieve optimal performance:
