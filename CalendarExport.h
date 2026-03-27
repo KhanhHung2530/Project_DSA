@@ -1,22 +1,30 @@
 #ifndef CALENDAREXPORT_H
 #define CALENDAREXPORT_H
 
+
 #include <iostream>
 #include "Course.h"
 #include "Activity.h"
 #include <vector>
 #include <fstream>
 #include <ctime>
+#include <iomanip>
+#include <sstream>
 using namespace std;
 
 inline string getStartDate(int day)
 {
-    int startDay = 12;
-    int actualDay = startDay + (day - 2);    // Convert weekday to actual calendar date starting from Jan 12
-    string dayStr = to_string(actualDay);
-    if (actualDay < 10)
-        dayStr = "0" + dayStr;
-    return "202601" + dayStr;
+    time_t now = time(nullptr);
+    tm *ltm = localtime(&now);
+
+    int current_wday = (ltm->tm_wday == 0) ? 7 : ltm->tm_wday;
+    int target_wday = day - 1; 
+    int diff_days = target_wday - current_wday;
+    ltm->tm_mday += diff_days;
+    mktime(ltm);
+    char buffer[10];
+    strftime(buffer, sizeof(buffer), "%Y%m%d", ltm);
+    return string(buffer);
 }
 
 inline string formatTime(const string &t)
