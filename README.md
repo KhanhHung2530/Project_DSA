@@ -25,6 +25,10 @@ Our system implements a sophisticated two-stage filtering pipeline to handle bot
 Instead of filtering, these constraints dynamically modify the `weight` property of each course, guiding the optimization algorithm to prefer certain classes:
 * **Time Preference:** Users can prioritize **Early Bird** (morning classes, `start_time < 12:00`) or **Lazy Mode** (afternoon classes).
 * **Preferred Days:** Users can selectively boost the weight of courses that fall on their favorite study days.
+  
+  ###### *`weight` defines the priority level of a course. By default, it is scaled based on academic credits, e.g., 1 credit = 10 weight.*
+  
+  ###### *The algorithm adds bonus weight to courses matching this preference*
 
 ### 🚫 Stage 2: Hard Constraints (Strict Pruning & Greedy Selection)
 These constraints aggressively filter out undesirable courses or states before the main algorithm runs:
