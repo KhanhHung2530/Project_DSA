@@ -20,7 +20,8 @@ const state = {
   csvText: "",
   courses: [],
   schedule: null,
-  selectedDay: 2
+  selectedDay: 2,
+  installPrompt: null
 };
 
 const elements = {
@@ -46,12 +47,16 @@ const elements = {
   detailTitle: document.getElementById("detailTitle"),
   detailSubtitle: document.getElementById("detailSubtitle"),
   summaryStats: document.getElementById("summaryStats"),
-  addActivityBtn: document.getElementById("addActivityBtn")
+  addActivityBtn: document.getElementById("addActivityBtn"),
+  installAppBtn: document.getElementById("installAppBtn"),
+  installHint: document.getElementById("installHint")
 };
 
 initialize();
 
 function initialize() {
+  registerServiceWorker();
+  setupInstallPrompt();
   renderDayChipGroups();
   addActivityCard({
     name: "English Study",
@@ -75,9 +80,66 @@ function initialize() {
   elements.exportBtn.addEventListener("click", exportCurrentSchedule);
   elements.loadSampleBtn.addEventListener("click", loadSampleCsv);
   elements.csvFileInput.addEventListener("change", handleCsvUpload);
+  elements.installAppBtn.addEventListener("click", installApplication);
 
   setMessage("Click \"Load data.csv\" or upload a CSV file to start.", "info");
   loadSampleCsv();
+}
+
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  window.addEventListener("load", async () => {
+    try {
+      await navigator.serviceWorker.register("service-worker.js");
+    } catch (error) {
+      console.warn("Service worker registration failed.", error);
+    }
+  });
+}
+
+function setupInstallPrompt() {
+  updateInstallUi();
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    state.installPrompt = event;
+    updateInstallUi();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    state.installPrompt = null;
+    updateInstallUi("App installed. You can now open it from your desktop or app launcher.");
+  });
+}
+
+async function installApplication() {
+  if (!state.installPrompt) {
+    updateInstallUi("Installation is available in Chrome or Edge after opening the hosted site.");
+    return;
+  }
+
+  state.installPrompt.prompt();
+  const outcome = await state.installPrompt.userChoice;
+  state.installPrompt = null;
+
+  if (outcome.outcome === "accepted") {
+    updateInstallUi("Installation started. Your browser will finish adding the app.");
+  } else {
+    updateInstallUi("Installation was dismissed. You can install it again later.");
+  }
+}
+
+function updateInstallUi(message) {
+  const isInstallable = Boolean(state.installPrompt);
+  elements.installAppBtn.hidden = !isInstallable;
+  elements.installHint.textContent =
+    message ||
+    (isInstallable
+      ? "This site can be installed like an app on supported browsers."
+      : "Open this site in Chrome or Edge to install it like an app.");
 }
 
 function renderDayChipGroups() {
@@ -157,7 +219,7 @@ async function loadSampleCsv() {
     }
     setMessage(`Loaded data.csv successfully. Found ${state.courses.length} course rows.`, "success");
   } catch (error) {
-    setMessage("Could not auto-load data.csv. Please run run_ui.bat or upload the CSV manually.", "warning");
+    setMessage("Could not auto-load data.csv. Please use a hosted link or upload the CSV manually.", "warning");
   }
 }
 
@@ -703,12 +765,12 @@ function renderDayDetail(day) {
           <div class="detail-top">
             <div>
               <h3>${escapeHtml(block.title)}</h3>
-              <p class="time-line">${block.startTime} - ${block.endTime} • ${block.duration} min</p>
+              <p class="time-line">${block.startTime} - ${block.endTime} | ${block.duration} min</p>
             </div>
             <span class="tag-pill">${escapeHtml(formatTag(block.category))}</span>
           </div>
-          <p class="meta-line">📍 ${escapeHtml(block.location || "Flexible time")}</p>
-          <p class="meta-line">💡 ${escapeHtml(block.detail || "Planned block")}</p>
+          <p class="meta-line">Location: ${escapeHtml(block.location || "Flexible time")}</p>
+          <p class="meta-line">Note: ${escapeHtml(block.detail || "Planned block")}</p>
         </article>
       `
     )
