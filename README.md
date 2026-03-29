@@ -180,7 +180,6 @@ Files related to the web interface:
 Additional files currently present in the folder:
 
 - `time_test.cpp`: small test file for checking the time conversion function
-- `main.exe`, `app_cli.exe`, `app_test.exe`, `time_test.exe`: compiled executables currently available in the project folder
 
 ## 8. How to compile and run
 
@@ -203,8 +202,6 @@ On Windows, the compiled file may be run as:
 ```bash
 SmartScheduler.exe
 ```
-
-The repository also already contains compiled `.exe` files, so on Windows it is possible to open the existing executable directly if needed.
 
 ### 8.2. Web version
 
