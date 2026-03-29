@@ -1,87 +1,289 @@
-# 📅 Smart Course Scheduler (Constraint-Based Scheduling)
-**Final Project: Data Structures and Algorithms**
-**Institution:** VNU-HCM University of Science
+# Smart Course Scheduler
 
-**Instructor:** Lê Trung Hoàng
+Final Project - Data Structures and Algorithms  
+Institution: VNU-HCM University of Science  
+Instructor: Le Trung Hoang
 
-**Team Members:**
-1. Đoàn Khánh Hưng - 25127195
-2. Nguyễn Cao An Bình - 25127183
-3. Tô Phúc Thành - 25127499
+Team members:
+1. Doan Khanh Hung - 25127195
+2. Nguyen Cao An Binh - 25127183
+3. To Phuc Thanh - 25127499
 
----
+## 1. Project description
 
-## 📝 1. Project Overview
-The **Smart Course Scheduler** is an advanced C++ console application designed to solve the complex problem of university timetable generation. Moving beyond simple conflict checking, this program models the scheduling process as a **Weighted Interval Scheduling** problem.
+This project is a course scheduling system built from the perspective of Data Structures and Algorithms. The main goal is to help a student create a weekly study plan from a dataset of available course sections while still taking personal constraints into account.
 
-But it doesn't stop at classes. Once the optimal academic schedule is generated, the system intelligently scans for "gaps" in your day and seamlessly integrates your Personal Activities (e.g., Gym, Reading, Part-time jobs) based on your preferred time periods.
+The input of the program is a CSV file containing course information such as course id, day of week, start time, end time, room, weight, semester, and type of class. Based on this data, the program selects a set of non-overlapping classes with high total priority, then continues to arrange personal activities into the remaining free time. The final result can be viewed as a weekly schedule and exported to an `.ics` calendar file.
 
-It allows students to input their personal preferences and strict constraints. The system then evaluates the dataset (`data.csv`) and outputs a globally optimal, non-overlapping schedule in the `.ics` (iCalendar) format, which can be seamlessly imported into Google Calendar, Apple Calendar, or Microsoft Outlook.
+At the moment, the folder contains two ways to use the system:
 
-## 🚀 2. Advanced Multi-Constraint Features
-Our system implements a sophisticated two-stage filtering pipeline to handle both soft and hard constraints:
+- a C++ console version in `main.cpp`
+- a web interface using `index.html`, `style.css`, and `script.js`
 
-### 🎯 Stage 1: Soft Constraints (Priority Weighting)
-Instead of filtering, these constraints dynamically modify the `weight` property of each course, guiding the optimization algorithm to prefer certain classes:
-* **Time Preference:** Users can prioritize **Early Bird** (morning classes, `start_time < 12:00`) or **Lazy Mode** (afternoon classes).
-* **Preferred Days:** Users can selectively boost the weight of courses that fall on their favorite study days.
-  
-  ###### *`weight` defines the priority level of a course. By default, it is scaled based on academic credits, e.g., 1 credit = 10 weight.*
-  
-  ###### *The algorithm adds bonus weight to courses matching this preference*
+The web version was added so the project can be demonstrated more easily and can later be deployed for public use. The core idea, however, is still the same: choose a suitable study schedule under constraints and complete the remaining time with personal activities.
 
-### 🚫 Stage 2: Hard Constraints (Strict Pruning & Greedy Selection)
-These constraints aggressively filter out undesirable courses or states before the main algorithm runs:
-* **Banned Days (Day-Off Mode):** Completely blocks user-defined days (e.g., keeping Fridays entirely free for part-time jobs).
-* **Lunch Break Saver:** Detects and drops any class that overlaps with the crucial 11:30 - 13:30 window.
-* **Minimum Break Enforcement:** Dynamically ensures a user-defined minimum gap (e.g., 15 or 30 minutes) between consecutive classes for commuting or resting. This is elegantly integrated directly into the `isCompatible` validation function.
-* **Max Classes Per Day:** Limits daily cognitive load by sorting courses per day by weight and trimming the excess.
-* **Max Study Days Per Week:** Utilizes a **Greedy Algorithm** to find the $N$ days with the highest potential weight sum, dropping classes scheduled on all other days.
+## 2. Main objectives
 
-### 🏋️ Stage 3: Life Integration & Gap-Filling
-Once the optimal course schedule is locked, the system switches to personal life management:
+The project is built to solve the following tasks:
 
-* **Smart Activity Placement:** Users can input personal activities (e.g., Gym, English) with specific durations and preferred periods (Morning, Afternoon, Evening, or Anywhere).
+- read course data from `data.csv`
+- filter courses by semester
+- apply both soft constraints and hard constraints
+- choose a valid schedule with no overlap
+- maximize the total priority of selected classes
+- place personal activities into free slots
+- generate a complete weekly plan including free time
+- export the result to `Schedule.ics`
 
-* **Gap Detection:** The algorithm scans the intervals between classes and safely injects personal activities without causing overlaps.
+## 3. Input data
 
-* **Free Time Generation:** Any remaining empty blocks in the active day (from ```activeStartMin``` to ```activeEndMin```) are automatically labeled as "Free Time", giving users a complete 360-degree view of their day.
+The main input file is `data.csv`. Each row has the following format:
 
-## 🧠 3. Algorithms & Data Structures
-This project demonstrates a deep understanding of DSA concepts, combining them to achieve optimal performance:
+`course_id, day, start_time, end_time, room, weight, semester, type`
 
-### The Core Engine: Dynamic Programming (O(n log n))
-The backbone of the scheduler is a 1D Dynamic Programming approach. 
-* Courses are grouped by day, and within each day, they are sorted by end_time to ensure the correctness of the Binary Search and DP state transitions.
-* A state array `dp[i]` stores the maximum possible weight achievable using a subset of the first $i$ courses.
-* **Binary Search:** To find the previous compatible course without overlapping, we implemented a custom `findPreviousNonConflict` function using Binary Search, optimizing the state transition from $O(n)$ to $O(\log n)$.
+Meaning of each column:
 
-### Advanced Data Structures Utilized
-* `std::vector`: For dynamic arrays and course list management.
-* `std::map`: Used to group courses by day (`map<int, vector<Course>>`) and calculate daily weight totals (`map<int, int>`).
-* `std::set`: Used to store the unique IDs of "allowed days" during the Greedy max-study-days calculation.
+- `course_id`: identifier of the course or class section
+- `day`: day of week, where `2 = Monday` and `8 = Sunday`
+- `start_time`, `end_time`: time in `HH:MM`
+- `room`: classroom or location
+- `weight`: priority value used by the scheduling algorithm
+- `semester`: semester number
+- `type`: lecture, lab, or another type of session
 
-## ⚙️ 4. Program Architecture
-The source code is modularized for high maintainability:
-* **`main.cpp`**: Handles the UI (Console), constraint pipeline, and the main DP logic.
-* **`Activity.h`**: Defines the PersonalActivity struct for user inputs and the unified ScheduleBlock struct for the final timeline.
-* **`Course.h`**: Defines the `Course` struct with custom operator overloading (`operator<`) for seamless sorting by end time.
-* **`DataLoader.h`**: Responsible for parsing the comma-separated `data.csv` file and converting `HH:MM` string formats into integer minutes for fast computation.
-* **`SchedulePlanner.h`**: The engine for Phase 3. It converts courses into ScheduleBlocks, intelligently injects personal activities into valid time gaps, and calculates "Free Time".
-* **`CalendarExport.h`**: Formats the selected courses into standard iCalendar syntax (`BEGIN:VCALENDAR`, `RRULE:FREQ=WEEKLY;COUNT=15`, etc.) and outputs `Schedule.ics`.
+The project currently includes sample data for several semesters in `data.csv`, so the program can be tested directly without preparing a new dataset.
 
-## 💻 5. Compilation & Execution
+## 4. Functionalities
 
-**Prerequisites:** Ensure you have a C++ compiler (like GCC/G++) and the `data.csv` file in the working directory.
+### 4.1. Course scheduling
 
-**To compile the source code:**
+The system supports the following study-related settings:
+
+- choose semester
+- prefer early classes, late classes, or no time preference
+- avoid specific days
+- prioritize preferred study days
+- limit the number of classes per day
+- set a minimum break time between two consecutive classes
+- avoid the lunch time block from 11:30 to 13:30
+- limit the total number of study days in one week
+
+After receiving these settings, the program selects a set of classes that does not overlap and has high total weight.
+
+### 4.2. Personal activity planning
+
+After the study schedule is chosen, the program allows the user to add repeating personal activities. For each activity, the user can provide:
+
+- activity name
+- category
+- location or note
+- duration
+- preferred time period: morning, afternoon, evening, or any time
+- list of days in the week
+
+The scheduler scans the remaining free slots in the day and tries to place these activities without causing conflicts with the chosen classes.
+
+### 4.3. Weekly schedule generation
+
+The final output is not limited to selected classes only. The program also creates:
+
+- personal activity blocks
+- free time blocks between busy intervals
+- warnings for activities that cannot be placed
+
+As a result, the user receives a full weekly schedule rather than only a list of selected classes.
+
+### 4.4. Calendar export
+
+The project exports the schedule to `Schedule.ics`, which can be imported into common calendar tools such as Google Calendar, Apple Calendar, or Outlook. In the C++ version, the export logic is implemented in `CalendarExport.h`. In the web version, the export is handled in `script.js`.
+
+## 5. Algorithms and data structures
+
+This project mainly demonstrates the application of classic DSA techniques to a practical problem.
+
+### 5.1. Weighted Interval Scheduling
+
+The core scheduling problem is treated as a weighted interval scheduling problem. Each class is considered an interval with:
+
+- starting time
+- ending time
+- weight
+
+For each day, the classes are sorted by ending time. Then dynamic programming is used to compute the best total weight without overlap.
+
+In the C++ version:
+
+- `dp[i]` stores the best total weight that can be achieved using classes up to position `i`
+- for each class, the program finds the nearest previous compatible class
+- the transition compares two choices: skip the current class or take it and add the best compatible result before it
+
+### 5.2. Binary search
+
+The function `findPreviousNonConflict` is implemented to support the DP transition efficiently. Instead of scanning backward linearly, the program uses binary search on the list sorted by ending time to locate the latest class that still satisfies the minimum break condition.
+
+This improves the transition step from linear search to logarithmic search.
+
+### 5.3. Greedy filtering
+
+Some constraints are handled before the DP phase. In particular, when the user limits the maximum number of study days per week, the program computes total weight by day, sorts the days by descending potential value, and keeps only the best days. This part follows a greedy idea.
+
+### 5.4. Data structures used
+
+The project uses the following standard structures:
+
+- `vector` for storing courses, activities, schedule blocks, and DP values
+- `map` for grouping courses by day and computing day-based totals
+- `set` for storing allowed days after greedy filtering
+- `string` for course information, time values, and descriptions
+
+These structures are enough to keep the code simple while still supporting the required operations clearly.
+
+## 6. How the scheduling process works
+
+The overall flow of the C++ program is as follows:
+
+1. Read all courses from `data.csv`
+2. Keep only the rows that belong to the selected semester
+3. Apply soft constraints by adjusting course weights
+4. Apply hard constraints by removing or trimming unsuitable options
+5. Group remaining classes by day
+6. Run weighted interval scheduling on each day
+7. Merge all selected classes into a weekly result
+8. Read personal activities from the user
+9. Try to place each activity into valid free slots
+10. Fill the remaining time with free-time blocks
+11. Print the weekly schedule and export `Schedule.ics`
+
+The web version follows the same idea, but all settings are entered through the browser interface instead of the console.
+
+## 7. Source code structure
+
+Main files in the project folder:
+
+- `main.cpp`: console program, user interaction, constraint processing, and the main DP logic
+- `Course.h`: definition of the `Course` structure and sorting rule by day and end time
+- `Activity.h`: definitions of `PersonalActivity` and `ScheduleBlock`
+- `DataLoader.h`: functions for reading `data.csv` and converting time strings to minutes
+- `SchedulePlanner.h`: logic for placing personal activities, generating free time, and printing the weekly schedule
+- `CalendarExport.h`: export functions for `.ics`
+- `data.csv`: sample input dataset
+- `Schedule.ics`: sample output calendar file
+
+Files related to the web interface:
+
+- `index.html`: user interface
+- `style.css`: layout and presentation
+- `script.js`: client-side logic for course filtering, activity placement, weekly rendering, and `.ics` export
+- `run_ui.bat`: quick local launcher using Python HTTP server
+- `manifest.webmanifest`, `service-worker.js`, `icons/`: files for the installable web app version
+
+Additional files currently present in the folder:
+
+- `time_test.cpp`: small test file for checking the time conversion function
+- `main.exe`, `app_cli.exe`, `app_test.exe`, `time_test.exe`: compiled executables currently available in the project folder
+
+## 8. How to compile and run
+
+### 8.1. Console version
+
+If a C++ compiler such as `g++` is installed, the console version can be compiled with:
+
 ```bash
 g++ main.cpp -o SmartScheduler
 ```
-To run the application:
 
-Windows: ```.\SmartLifePlanner.exe```
+Then run:
 
-macOS/Linux: ```./SmartLifePlanner```
+```bash
+./SmartScheduler
+```
 
-(Follow the on-screen prompts to set your academic constraints, add your personal activities, and let the algorithm do the heavy lifting!)
+On Windows, the compiled file may be run as:
+
+```bash
+SmartScheduler.exe
+```
+
+The repository also already contains compiled `.exe` files, so on Windows it is possible to open the existing executable directly if needed.
+
+### 8.2. Web version
+
+Because the web interface reads `data.csv`, it should be opened through a local server instead of opening `index.html` directly as a file.
+
+The simplest way on Windows is:
+
+```bash
+run_ui.bat
+```
+
+This starts a local HTTP server on port `8000` and opens:
+
+```text
+http://localhost:8000/index.html
+```
+
+Another equivalent way is:
+
+```bash
+python -m http.server 8000
+```
+
+and then open the same address in a browser.
+
+### 8.3. Public web deployment
+
+Besides local testing, the web version is also prepared for deployment so that other users can access it through a shared link in a browser.
+
+The current project already includes deployment-related files such as:
+
+- `netlify.toml` for static hosting configuration
+- `manifest.webmanifest`, `service-worker.js`, and `icons/` for the installable PWA version
+
+This means the interface can be published as a public website on services such as Netlify. After deployment, users can:
+
+- open the scheduler from a public URL without installing C++ tools
+- use the application directly in the browser
+- optionally install it as a lightweight app on supported devices
+
+In short, the web implementation is not only for demonstration in class, but also for sharing the scheduler with general users in a simple and accessible way.
+
+Deployment notes and publishing steps are summarized in `README_DEPLOY.md`.
+
+## 9. Program output
+
+The program produces the following outputs:
+
+- selected course schedule
+- personal activity schedule
+- automatically generated free-time blocks
+- warning messages for activities that cannot be placed
+- exported calendar file `Schedule.ics`
+
+In the console version, the weekly schedule is printed day by day in text form. In the web version, the result is shown as a weekly overview and a detailed daily timeline.
+
+## 10. Notes on implementation
+
+Some details observed directly from the current codebase:
+
+- Time values are converted to minutes for easier comparison and scheduling.
+- The minimum break condition is integrated into compatibility checking.
+- Lunch avoidance is handled as a hard filter.
+- Free time is generated only within the user-defined active time range.
+- The project currently uses a fixed reference week when exporting `.ics`, because the focus of the assignment is scheduling logic rather than live calendar synchronization.
+
+## 11. Limitations
+
+The current version still has some limitations:
+
+- the system depends on the correctness of the CSV input format
+- there is no database; all data is read from local files
+- the scheduler chooses from the available rows in the dataset and does not generate new class sections
+- the calendar export uses a fixed sample week instead of connecting to a real semester calendar
+
+These limitations are acceptable for the scope of a DSA final project, since the main focus is the design of the scheduling algorithm and supporting data structures.
+
+## 12. Conclusion
+
+This project applies dynamic programming, binary search, greedy filtering, and standard data structures to solve a practical scheduling problem. The result is a system that not only selects a valid study timetable but also extends it into a full weekly life plan with personal activities and free-time management.
+
+From the viewpoint of a Data Structures and Algorithms course, the most important part of the project is that the problem was modeled clearly, implemented in modular form, and solved using appropriate algorithmic techniques rather than ad hoc manual rules.
