@@ -1,4 +1,4 @@
-# Smart Course Scheduler
+# Life Scheduler
 
 Final Project - Data Structures and Algorithms  
 Institution: VNU-HCM University of Science  
@@ -11,7 +11,7 @@ Team members:
 
 ## 1. Project description
 
-This project is a course scheduling system built from the perspective of Data Structures and Algorithms. The main goal is to help a student create a weekly study plan from a dataset of available course sections while still taking personal constraints into account.
+This project, titled `Life Scheduler`, is a scheduling system built from the perspective of Data Structures and Algorithms. The main goal is to help a student create a weekly study plan from a dataset of available course sections while still taking personal constraints into account.
 
 The input of the program is a CSV file containing course information such as course id, day of week, start time, end time, room, weight, semester, and type of class. Based on this data, the program selects a set of non-overlapping classes with high total priority, then continues to arrange personal activities into the remaining free time. The final result can be viewed as a weekly schedule and exported to an `.ics` calendar file.
 
@@ -188,19 +188,19 @@ Additional files currently present in the folder:
 If a C++ compiler such as `g++` is installed, the console version can be compiled with:
 
 ```bash
-g++ main.cpp -o SmartScheduler
+g++ main.cpp -o LifeScheduler
 ```
 
 Then run:
 
 ```bash
-./SmartScheduler
+./LifeScheduler
 ```
 
 On Windows, the compiled file may be run as:
 
 ```bash
-SmartScheduler.exe
+LifeScheduler.exe
 ```
 
 ### 8.2. Web version
