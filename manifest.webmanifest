@@ -1,0 +1,19 @@
+{
+  "name": "Life Schedule Planner",
+  "short_name": "Planner",
+  "description": "Build a study and life schedule in one clean weekly planner view.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f4ef",
+  "theme_color": "#ee7d57",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
